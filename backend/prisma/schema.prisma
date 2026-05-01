@@ -1,0 +1,119 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+
+model User {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String   @unique
+  password  String
+  role      Role     @default(STAFF)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("users")
+}
+
+model Athlete {
+  id         Int          @id @default(autoincrement())
+  athleteId  BigInt       @unique // ID do sistema de rastreamento GPS
+  name       String?
+  position   String?
+  group      String?
+  profile    String?      // ex: explosivo, alta_resistencia, baixa_intensidade, alta_carga
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+
+  sessions   Session[]
+  alerts     Alert[]
+
+  @@map("athletes")
+}
+
+model Session {
+  id                  Int      @id @default(autoincrement())
+  athleteId           Int
+  athlete             Athlete  @relation(fields: [athleteId], references: [id])
+  
+  // Identificação da sessão
+  startDate           DateTime
+  startTime           String?
+  endTime             String?
+  weekStartDate       DateTime?
+  monthStartDate      DateTime?
+  segmentName         String   // 'Whole Session', 'First Half', 'Second Half', etc.
+  
+  // Métricas de carga
+  durationMins        Float?
+  sessionLoad         Float?
+  workload            Float?
+  workloadVolume      Float?
+  workloadIntensity   Float?
+  
+  // Métricas de distância
+  distanceM           Float?
+  metresPerMinute     Float?
+  highIntensityRunM   Float?
+  noHighIntensityEv   Int?
+  sprintDistanceM     Float?
+  
+  // Métricas de velocidade
+  rawTopSpeedKph      Float?
+  noOfSprints         Int?
+  topSpeedKph         Float?
+  avgSpeedKph         Float?
+  
+  // Métricas de aceleração
+  accelerations       Int?
+  decelerations       Int?
+  
+  // Percentuais de velocidade
+  pctMaxSpeed         Float?
+  pctRawMaxSpeed      Float?
+  
+  // Métricas de 90% de velocidade
+  ninetyPctMaxSpeedEv     Int?
+  ninetyPctMaxSpeedDistM  Float?
+  ninetyPctMaxSpeedDurSec Float?
+  ninetyPctRawMaxEv       Int?
+  ninetyPctRawMaxDistM    Float?
+  ninetyPctRawMaxDurSec   Float?
+
+  isAnomaly           Boolean  @default(false)
+  anomalyScore        Float?
+
+  createdAt           DateTime @default(now())
+
+  @@map("sessions")
+}
+
+model Alert {
+  id          Int       @id @default(autoincrement())
+  athleteId   Int
+  athlete     Athlete   @relation(fields: [athleteId], references: [id])
+  type        String    // 'performance_drop', 'anomaly', 'overload'
+  message     String
+  severity    Severity  @default(MEDIUM)
+  isRead      Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+
+  @@map("alerts")
+}
+
+enum Role {
+  ADMIN
+  STAFF
+}
+
+enum Severity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
