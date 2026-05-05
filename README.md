@@ -89,9 +89,9 @@ O futebol profissional moderno utiliza dados de rastreamento GPS e sensores para
 | RF01 | Importar dataset histórico para o banco | 1 | [US04] | ✅ |
 | RF02 | Importar novos dados de partidas | 1 | [US04] | ✅ |
 | RF03 | Identificar perfis automáticos de jogadores | 1-2 | [US05], [US06] | 🔄 |
-| RF04 | Comparar atletas por perfis e indicadores | 3 | [US09] | 🔜 |
-| RF05 | Detectar quedas de desempenho (Anomalias) | 2 | [US07] | 🔜 |
-| RF06 | Emitir alertas para a comissão técnica | 2 | [US08] | 🔜 |
+| RF04 | Comparar atletas por perfis e indicadores | 3 | [US09] |  |
+| RF05 | Detectar quedas de desempenho (Anomalias) | 2 | [US07] |  |
+| RF06 | Emitir alertas para a comissão técnica | 2 | [US08] |  |
 | RF07 | Dashboards com visualizações | 1-3 | [US05], [US09] | 🔄 |
 | RF08 | Acesso via dispositivos móveis | 3 | [US10] | 🔄 |
 
@@ -102,12 +102,12 @@ O futebol profissional moderno utiliza dados de rastreamento GPS e sensores para
 | RNF02 | Segurança: Autenticação JWT + Bcrypt | [US03] | ✅ |
 | RNF03 | Desempenho e escalabilidade (Node.js) | [US02] | ✅ |
 | RNF04 | Confiabilidade e persistência de dados | [US02] | ✅ |
-| RNF05 | Análises claras e compreensíveis | [US06], [US09] | 🔄 |
+| RNF05 | Análises claras e compreensíveis | [US06], [US09] |  |
 
 ### Restrições (RP)
 | ID | Descrição | User Story (US) | Status |
 |----|-----------|-----------------|--------|
-| RP01 | Análise com IA/ML (K-Means/Anomalias) | [US06], [US07] | Sprint 2 🔜 |
+| RP01 | Análise com IA/ML (K-Means/Anomalias) | [US06], [US07] | Sprint 2  |
 | RP02 | Serviços de nuvem (Supabase + Render) | [US02] | ✅ |
 | RP03 | Desenvolvimento incremental e ágil | [US01] | ✅ |
 | RP04 | Segurança: criptografia e LGPD | [US11] | ✅ |
@@ -173,36 +173,16 @@ npm run dev            # Inicia em http://localhost:5173
 
 | Nome | Papel | GitHub |
 |------|-------|--------|
-| Polly | Dev + **Scrum Master** | @polly |
-| Bruna | Dev + **Product Owner** | @bruna |
-| Dev 3 | Dev Full Stack | — |
-| Dev 4 | Dev Full Stack | — |
-| Dev 5 | Dev Full Stack | — |
-| Dev 6 | Dev Frontend | — |
-| Dev 7 | Dev Full Stack | — |
+| Pollyana Roberta | Dev + **Scrum Master** | @pollymeowth |
+| Bruna Regra | Dev + **Product Owner** | @regrabru |
+| Maria Eduarda | Dev Full Stack | @ferreira-me |
+| Leandro Barbosa | Dev Full Stack | @gmlebc |
+| Raquel Massae | Dev Full Stack | @nakamuraquel |
+| Felipe Correia | Dev Frontend | @turnupthetaste|
+|Pamela Freitas| Dev Full Stack | @PaamFreitas18 |
 
 ---
 
-## 🌿 Branches
-
-```
-main         ← código de produção (só via PR revisado)
-develop      ← integração (branch principal de desenvolvimento)
-feature/xxx  ← features (ex: feature/us06-import-xlsx)
-fix/xxx      ← correções de bugs
-```
-
-## ✅ Commits
-
-Seguimos o padrão **Conventional Commits**:
-```
-feat: adiciona importação de xlsx
-fix: corrige validação de datas
-docs: atualiza README
-chore: configura CI/CD
-test: adiciona testes de import
-refactor: extrai service de alertas
-```
 
 ---
 
