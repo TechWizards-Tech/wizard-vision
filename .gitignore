@@ -4,3 +4,7 @@ dist/
 *.log
 .DS_Store
 Thumbs.db
+
+# Ignorar planejamento e documentação FATEC
+TRELLO.md
+DOCUMENTACAO_SISTEMA.md

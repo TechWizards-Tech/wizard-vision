@@ -10,7 +10,7 @@ const start = async () => {
     console.log('✅ Banco de dados conectado com sucesso');
 
     app.listen(PORT, () => {
-      console.log(`\n🚀 AtletaTrack API rodando!`);
+      console.log(`\n🚀 WizardVision API rodando!`);
       console.log(`   📍 URL: http://localhost:${PORT}`);
       console.log(`   🏥 Health: http://localhost:${PORT}/health`);
       console.log(`   🌍 Ambiente: ${process.env.NODE_ENV}\n`);

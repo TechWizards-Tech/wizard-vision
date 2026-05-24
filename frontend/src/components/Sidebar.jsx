@@ -10,32 +10,65 @@ const PROFILE_COLORS = {
 
 const NAV_ITEMS = [
   { to: '/dashboard', icon: '📊', label: 'Dashboard' },
-  { to: '/athletes', icon: '👥', label: 'Atletas' },
+  { to: '/athletes', icon: '👥', label: 'Atletas', disabled: true },
   { to: '/alerts', icon: '🔔', label: 'Alertas' },
-  { to: '/import', icon: '📥', label: 'Importar' },
+  { to: '/import', icon: '📥', label: 'Importar', disabled: true },
 ];
 
-export default function Sidebar({ user, onLogout }) {
+export default function Sidebar({ user, onLogout, isAlertsOpen, onAlertsClick }) {
   return (
     <aside className="sidebar">
       {/* Logo */}
       <div className="sidebar-brand">
         <span className="sidebar-icon">⚽</span>
-        <span className="sidebar-name">AtletaTrack</span>
+        <span className="sidebar-name">WizardVision</span>
       </div>
 
       {/* Nav */}
       <nav className="sidebar-nav">
-        {NAV_ITEMS.map(item => (
-          <NavLink
-            key={item.to}
-            to={item.to}
-            className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
-          >
-            <span className="nav-icon">{item.icon}</span>
-            <span className="nav-label">{item.label}</span>
-          </NavLink>
-        ))}
+        {NAV_ITEMS.map(item => {
+          if (item.disabled) {
+            return (
+              <div
+                key={item.to}
+                className="nav-item disabled"
+                title="Disponível na Sprint 3"
+                style={{ opacity: 0.4, cursor: 'not-allowed' }}
+              >
+                <span className="nav-icon">{item.icon}</span>
+                <span className="nav-label">{item.label}</span>
+              </div>
+            );
+          }
+
+          if (item.to === '/alerts' && onAlertsClick) {
+            return (
+              <button
+                key={item.to}
+                onClick={(e) => {
+                  e.preventDefault();
+                  onAlertsClick();
+                }}
+                className={`nav-item ${isAlertsOpen ? 'active' : ''}`}
+                style={{ background: 'none', border: 'none', width: '100%', textAlign: 'left', font: 'inherit', color: 'inherit', cursor: 'pointer' }}
+              >
+                <span className="nav-icon">{item.icon}</span>
+                <span className="nav-label">{item.label}</span>
+              </button>
+            );
+          }
+
+          return (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
+            >
+              <span className="nav-icon">{item.icon}</span>
+              <span className="nav-label">{item.label}</span>
+            </NavLink>
+          );
+        })}
       </nav>
 
       {/* User */}

@@ -57,6 +57,9 @@ class ApiService {
     const query = new URLSearchParams(params).toString();
     return this.request('GET', `/alerts?${query}`);
   }
+  getUnreadCount() {
+    return this.request('GET', '/alerts/unread-count');
+  }
   markAlertRead(id) {
     return this.request('PATCH', `/alerts/${id}/read`);
   }

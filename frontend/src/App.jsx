@@ -27,7 +27,9 @@ function AppRoutes() {
       <Route path="/" element={user ? <Navigate to="/dashboard" replace /> : <Login />} />
       <Route path="/register" element={user ? <Navigate to="/dashboard" replace /> : <Register />} />
       <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
-      {/* Sprint 2: adicionar /athletes/:id, /alerts, /import */}
+      <Route path="/alerts" element={<PrivateRoute><Dashboard openAlertsDefault={true} /></PrivateRoute>} />
+      <Route path="/import" element={<PrivateRoute><Dashboard openImportDefault={true} /></PrivateRoute>} />
+      <Route path="/athletes" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
