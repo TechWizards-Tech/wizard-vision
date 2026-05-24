@@ -22,7 +22,7 @@ const listAlerts = async (req, res) => {
       orderBy: { createdAt: 'desc' },
       include: {
         athlete: {
-          select: { id: true, position: true, profile: true },
+          select: { id: true, name: true, position: true, profile: true },
         },
       },
     }),
@@ -33,6 +33,26 @@ const listAlerts = async (req, res) => {
     success: true,
     data: { alerts, total },
   });
+};
+
+// GET /alerts/unread-count
+const getUnreadCount = async (req, res) => {
+  try {
+    const count = await prisma.alert.count({
+      where: { isRead: false },
+    });
+    return res.status(200).json({
+      success: true,
+      data: { count },
+    });
+  } catch (error) {
+    console.error('Erro ao contar alertas não lidos:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Erro ao contar alertas não lidos',
+      error: error.message,
+    });
+  }
 };
 
 // PATCH /alerts/:id/read
@@ -47,4 +67,4 @@ const markAsRead = async (req, res) => {
   return res.status(200).json({ success: true, data: alert });
 };
 
-module.exports = { listAlerts, markAsRead };
+module.exports = { listAlerts, getUnreadCount, markAsRead };
