@@ -35,7 +35,7 @@ def get_db_connection():
         return conn
     except Exception as e:
         print(f"[ERROR] Erro ao conectar ao banco de dados: {e}")
-        raise HTTPException(status_code=500, detail="Erro de conexão com o banco de dados")
+        raise HTTPException(status_code=500, detail=f"Erro de conexão com o banco de dados: {str(e)}")
 
 @app.get("/health")
 def health_check():
