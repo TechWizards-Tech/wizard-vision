@@ -147,6 +147,18 @@ const importXlsx = async (req, res) => {
       sessionsCreated += sessionData.length;
     }
 
+    // 🤖 Dispara o recálculo do modelo de IA (K-Means e detecção de anomalias no Python)
+    try {
+      const mlUrl = process.env.ML_SERVICE_URL || 'http://localhost:8000';
+      await fetch(`${mlUrl}/ml/recalculate-all`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      console.log('🤖 Inteligência Artificial (K-Means e Anomalias) recalculada com sucesso.');
+    } catch (mlError) {
+      console.warn('⚠️ Não foi possível conectar ao serviço de IA (ml_service). Ignorando para fins de teste local:', mlError.message);
+    }
+
     return res.status(200).json({
       success: true,
       message: 'Importação concluída com sucesso',
@@ -165,4 +177,35 @@ const importXlsx = async (req, res) => {
   }
 };
 
-module.exports = { upload, importXlsx };
+/**
+ * Controller para disparar o recálculo da IA manualmente
+ */
+const recalculateMl = async (req, res) => {
+  try {
+    const mlUrl = process.env.ML_SERVICE_URL || 'http://localhost:8000';
+    const response = await fetch(`${mlUrl}/ml/recalculate-all`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' }
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Serviço de IA retornou status ${response.status}`);
+    }
+    
+    const result = await response.json();
+    return res.status(200).json({
+      success: true,
+      message: 'Inteligência artificial recalculada com sucesso no banco de dados',
+      data: result
+    });
+  } catch (error) {
+    console.error('Erro ao recalcular IA:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Falha ao recalcular a Inteligência Artificial',
+      error: error.message
+    });
+  }
+};
+
+module.exports = { upload, importXlsx, recalculateMl };
