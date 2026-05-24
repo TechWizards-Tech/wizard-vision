@@ -150,3 +150,88 @@
   background: rgba(239, 68, 68, 0.1);
   border-color: #ef4444;
 }
+
+/* Responsividade Mobile (WizardVision Bottom Navigation) */
+@media (max-width: 768px) {
+  .sidebar {
+    width: 100vw;
+    height: 65px;
+    min-height: auto;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    top: auto;
+    flex-direction: row;
+    padding: 0.25rem 0.75rem;
+    border-right: none;
+    border-top: 1px solid var(--color-border);
+    z-index: 999;
+    align-items: center;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.35);
+  }
+
+  .sidebar-brand {
+    display: none !important;
+  }
+
+  .sidebar-nav {
+    flex-direction: row !important;
+    justify-content: space-around;
+    align-items: center;
+    width: 100%;
+    padding: 0;
+    gap: 0.5rem;
+  }
+
+  .nav-item {
+    flex-direction: column;
+    gap: 0.15rem;
+    padding: 0.4rem 0.5rem;
+    font-size: 0.65rem;
+    border-radius: 0.5rem;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    max-width: 80px;
+    height: 100%;
+  }
+
+  .nav-item.active::before {
+    left: 25%;
+    top: auto;
+    bottom: 0;
+    height: 3px;
+    width: 50%;
+    border-radius: 3px 3px 0 0;
+  }
+
+  .nav-icon {
+    font-size: 1.1rem;
+    margin: 0;
+    width: auto;
+  }
+
+  .nav-label {
+    font-size: 0.65rem;
+    text-align: center;
+  }
+
+  .sidebar-footer {
+    padding: 0 0.5rem;
+    border-top: none;
+    margin-top: 0;
+    flex-shrink: 0;
+  }
+
+  .sidebar-user {
+    display: none !important;
+  }
+
+  .logout-btn {
+    border: none;
+    padding: 0.4rem;
+    font-size: 1.1rem;
+    background: transparent;
+  }
+}
