@@ -36,7 +36,7 @@ export default function Register() {
       <div className="register-container">
         <div className="login-brand">
           <div className="login-brand-icon">⚽</div>
-          <h1 className="login-brand-name">AtletaTrack</h1>
+          <h1 className="login-brand-name">WizardVision</h1>
           <p className="login-brand-subtitle">Crie sua conta de Staff</p>
         </div>
 

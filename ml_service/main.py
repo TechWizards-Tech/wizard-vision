@@ -13,7 +13,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 app = FastAPI(
-    title="AtletaTrack ML Service",
+    title="WizardVision ML Service",
     description="Serviço de Inteligência Artificial para Classificação de Perfis e Detecção de Anomalias",
     version="1.0.0"
 )
@@ -41,7 +41,7 @@ def get_db_connection():
 def health_check():
     return {
         "status": "ok",
-        "service": "AtletaTrack ML Service",
+        "service": "WizardVision ML Service",
         "timestamp": datetime.now().isoformat()
     }
 

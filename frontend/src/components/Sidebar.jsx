@@ -21,7 +21,7 @@ export default function Sidebar({ user, onLogout, isAlertsOpen, onAlertsClick })
       {/* Logo */}
       <div className="sidebar-brand">
         <span className="sidebar-icon">⚽</span>
-        <span className="sidebar-name">AtletaTrack</span>
+        <span className="sidebar-name">WizardVision</span>
       </div>
 
       {/* Nav */}
