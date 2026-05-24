@@ -154,3 +154,27 @@
   color: var(--color-primary);
   font-weight: 600;
 }
+
+/* Alerta Pulsante */
+.athlete-card.has-active-alerts {
+  border-color: rgba(239, 68, 68, 0.4);
+  animation: alertPulse 2s infinite ease-in-out;
+}
+
+.athlete-card.has-active-alerts::before {
+  background: linear-gradient(90deg, #ef4444, #b91c1c);
+  opacity: 0.7;
+}
+
+@keyframes alertPulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.15);
+  }
+  50% {
+    box-shadow: 0 0 12px 3px rgba(239, 68, 68, 0.3);
+    border-color: rgba(239, 68, 68, 0.6);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.15);
+  }
+}

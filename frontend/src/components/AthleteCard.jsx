@@ -10,10 +10,11 @@ const PROFILE_LABELS = {
 export default function AthleteCard({ athlete, onClick }) {
   const profile = PROFILE_LABELS[athlete.profile];
   const lastSession = athlete.sessions?.[0];
+  const hasAlerts = athlete._count?.alerts > 0;
 
   return (
     <article
-      className="athlete-card"
+      className={`athlete-card ${hasAlerts ? 'has-active-alerts' : ''}`}
       onClick={onClick}
       role="button"
       tabIndex={0}

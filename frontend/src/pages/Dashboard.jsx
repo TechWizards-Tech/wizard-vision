@@ -11,7 +11,7 @@ import './Dashboard.css';
 const POSITIONS = ['Todos', 'Striker', 'Centre Attacking Midfielder', 'Right Wing Back', 'Left Wing Back', 'Centre Back', 'Goalkeeper'];
 const PROFILES = ['Todos', 'explosivo', 'alta_resistencia', 'alta_carga_impacto', 'baixa_intensidade'];
 
-export default function Dashboard() {
+export default function Dashboard({ openAlertsDefault = false, openImportDefault = false }) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
@@ -25,9 +25,27 @@ export default function Dashboard() {
   const [search, setSearch] = useState('');
   const [importing, setImporting] = useState(false);
 
+  // Estados de Alertas e Notificações (Sprint 2)
+  const [isAlertsOpen, setIsAlertsOpen] = useState(openAlertsDefault);
+  const [alerts, setAlerts] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+
   useEffect(() => {
     loadStats();
+    loadUnreadCount();
   }, []);
+
+  useEffect(() => {
+    if (openAlertsDefault) {
+      setIsAlertsOpen(true);
+    }
+  }, [openAlertsDefault]);
+
+  useEffect(() => {
+    if (isAlertsOpen) {
+      loadAlerts();
+    }
+  }, [isAlertsOpen]);
 
   useEffect(() => {
     loadAthletes();
@@ -39,6 +57,37 @@ export default function Dashboard() {
       setStats(res.data);
     } catch (err) {
       console.error(err);
+    }
+  };
+
+  const loadUnreadCount = async () => {
+    try {
+      const res = await api.getUnreadCount();
+      setUnreadCount(res.data.count);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const loadAlerts = async () => {
+    try {
+      const res = await api.getAlerts({ isRead: false });
+      setAlerts(res.data.alerts);
+    } catch (err) {
+      console.error('Erro ao carregar alertas:', err);
+    }
+  };
+
+  const handleMarkAsRead = async (alertId) => {
+    try {
+      await api.markAlertRead(alertId);
+      toast.success('Alerta marcado como resolvido!');
+      loadUnreadCount();
+      loadAlerts();
+      loadStats();
+      loadAthletes();
+    } catch (err) {
+      toast.error('Erro ao arquivar alerta');
     }
   };
 
@@ -72,6 +121,8 @@ export default function Dashboard() {
       );
       loadStats();
       loadAthletes();
+      loadUnreadCount();
+      if (isAlertsOpen) loadAlerts();
     } catch (err) {
       toast.error(err.message || 'Erro ao importar arquivo', { id: toastId });
     } finally {
@@ -104,16 +155,26 @@ export default function Dashboard() {
             <h1 className="dashboard-title">Dashboard</h1>
             <p className="dashboard-subtitle">Visão geral do desempenho dos atletas</p>
           </div>
-          <label id="btn-import" className={`import-btn ${importing ? 'loading' : ''}`} title="Importar xlsx">
-            {importing ? <span className="spinner-sm" /> : '📥 Importar Dados'}
-            <input
-              type="file"
-              accept=".xlsx,.xls"
-              onChange={handleImport}
-              disabled={importing}
-              style={{ display: 'none' }}
-            />
-          </label>
+          <div className="header-actions">
+            <button 
+              className="notification-bell-btn" 
+              onClick={() => { setIsAlertsOpen(!isAlertsOpen); }}
+              title="Notificações e Alertas"
+            >
+              <span className="bell-emoji">🔔</span>
+              {unreadCount > 0 && <span className="bell-badge">{unreadCount}</span>}
+            </button>
+            <label id="btn-import" className={`import-btn ${importing ? 'loading' : ''}`} title="Importar xlsx">
+              {importing ? <span className="spinner-sm" /> : '📥 Importar Dados'}
+              <input
+                type="file"
+                accept=".xlsx,.xls"
+                onChange={handleImport}
+                disabled={importing}
+                style={{ display: 'none' }}
+              />
+            </label>
+          </div>
         </header>
 
         {/* Stats Cards */}
@@ -219,6 +280,54 @@ export default function Dashboard() {
           </div>
         )}
       </main>
+
+      {/* Drawer de Alertas (Sprint 2) */}
+      {isAlertsOpen && (
+        <aside className="alerts-drawer">
+          <div className="drawer-header">
+            <h3>🔔 Central de Alertas</h3>
+            <button className="close-drawer-btn" onClick={() => setIsAlertsOpen(false)}>✕</button>
+          </div>
+          
+          <div className="drawer-content">
+            {alerts.length === 0 ? (
+              <div className="drawer-empty-state">
+                <span className="empty-icon">⚽</span>
+                <p>Nenhum alerta pendente!</p>
+                <span className="empty-sub">Todo o plantel está 100% saudável.</span>
+              </div>
+            ) : (
+              <div className="alerts-list">
+                {alerts.map((alert) => (
+                  <div key={alert.id} className={`alert-item-card severity-${alert.severity.toLowerCase()}`}>
+                    <div className="alert-item-header">
+                      <span className={`alert-severity-dot severity-${alert.severity.toLowerCase()}`} />
+                      <span className="alert-athlete-name">{alert.athlete?.name || `Atleta #${alert.athleteId}`}</span>
+                      <span className="alert-athlete-pos">{alert.athlete?.position || ''}</span>
+                    </div>
+                    <p className="alert-item-msg">{alert.message}</p>
+                    <div className="alert-item-footer">
+                      <span className="alert-date">
+                        {new Date(alert.createdAt).toLocaleDateString('pt-BR', {
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
+                      </span>
+                      <button 
+                        className="mark-read-btn" 
+                        onClick={() => handleMarkAsRead(alert.id)}
+                        title="Marcar como resolvido"
+                      >
+                        ✔️ Resolvido
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </aside>
+      )}
     </div>
   );
 }
