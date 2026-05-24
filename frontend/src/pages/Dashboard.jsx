@@ -42,6 +42,14 @@ export default function Dashboard({ openAlertsDefault = false, openImportDefault
   }, [openAlertsDefault]);
 
   useEffect(() => {
+    if (openImportDefault) {
+      // Gatilho automático para abrir a seleção de arquivo Excel
+      const fileInput = document.getElementById('input-file-import');
+      if (fileInput) fileInput.click();
+    }
+  }, [openImportDefault]);
+
+  useEffect(() => {
     if (isAlertsOpen) {
       loadAlerts();
     }
@@ -146,7 +154,12 @@ export default function Dashboard({ openAlertsDefault = false, openImportDefault
 
   return (
     <div className="app-layout">
-      <Sidebar user={user} onLogout={handleLogout} />
+      <Sidebar 
+        user={user} 
+        onLogout={handleLogout} 
+        isAlertsOpen={isAlertsOpen}
+        onAlertsClick={() => setIsAlertsOpen(prev => !prev)}
+      />
 
       <main className="main-content">
         {/* Header */}
@@ -167,6 +180,7 @@ export default function Dashboard({ openAlertsDefault = false, openImportDefault
             <label id="btn-import" className={`import-btn ${importing ? 'loading' : ''}`} title="Importar xlsx">
               {importing ? <span className="spinner-sm" /> : '📥 Importar Dados'}
               <input
+                id="input-file-import"
                 type="file"
                 accept=".xlsx,.xls"
                 onChange={handleImport}
