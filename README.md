@@ -1,4 +1,4 @@
-# 🏟️ AtletaTrack — Sistema de Análise de Desempenho de Atletas
+# 🏟️ WizardVision — Sistema de Análise de Desempenho de Atletas
 
 <div align="center">
 
@@ -49,7 +49,7 @@ O futebol profissional moderno utiliza dados de rastreamento GPS e sensores para
 └──────────┬───────────────────────────┬──────────────┘
            │                           │
 ┌──────────▼───────────┐   ┌───────────▼──────────────┐
-│  PostgreSQL (Supabase)│   │   ML/IA (Sprint 2)       │
+│  PostgreSQL (Supabase)│   │   ML/IA                  │
 │  via Prisma ORM      │   │   K-Means + Anomaly Det. │
 └──────────────────────┘   └──────────────────────────┘
 ```
@@ -88,12 +88,12 @@ O futebol profissional moderno utiliza dados de rastreamento GPS e sensores para
 |----|-----------|--------|-----------------|--------|
 | RF01 | Importar dataset histórico para o banco | 1 | [US04] | ✅ |
 | RF02 | Importar novos dados de partidas | 1 | [US04] | ✅ |
-| RF03 | Identificar perfis automáticos de jogadores | 1-2 | [US05], [US06] | 🔄 |
+| RF03 | Identificar perfis automáticos de jogadores | 1-2 | [US05], [US06] | ✅ |
 | RF04 | Comparar atletas por perfis e indicadores | 3 | [US09] |  |
-| RF05 | Detectar quedas de desempenho (Anomalias) | 2 | [US07] |  |
-| RF06 | Emitir alertas para a comissão técnica | 2 | [US08] |  |
+| RF05 | Detectar quedas de desempenho (Anomalias) | 2 | [US07] | ✅ |
+| RF06 | Emitir alertas para a comissão técnica | 2 | [US08] | ✅ |
 | RF07 | Dashboards com visualizações | 1-3 | [US05], [US09] | 🔄 |
-| RF08 | Acesso via dispositivos móveis | 3 | [US10] | 🔄 |
+| RF08 | Acesso via dispositivos móveis | 3 | [US10] |  |
 
 ### Não Funcionais (RNF)
 | ID | Descrição | User Story (US) | Status |
@@ -102,18 +102,59 @@ O futebol profissional moderno utiliza dados de rastreamento GPS e sensores para
 | RNF02 | Segurança: Autenticação JWT + Bcrypt | [US03] | ✅ |
 | RNF03 | Desempenho e escalabilidade (Node.js) | [US02] | ✅ |
 | RNF04 | Confiabilidade e persistência de dados | [US02] | ✅ |
-| RNF05 | Análises claras e compreensíveis | [US06], [US09] |  |
+| RNF05 | Análises claras e compreensíveis | [US06], [US09] | 🔄 |
 
 ### Restrições (RP)
 | ID | Descrição | User Story (US) | Status |
 |----|-----------|-----------------|--------|
-| RP01 | Análise com IA/ML (K-Means/Anomalias) | [US06], [US07] | Sprint 2  |
+| RP01 | Análise com IA/ML (K-Means/Anomalias) | [US06], [US07] | ✅ |
 | RP02 | Serviços de nuvem (Supabase + Render) | [US02] | ✅ |
 | RP03 | Desenvolvimento incremental e ágil | [US01] | ✅ |
 | RP04 | Segurança: criptografia e LGPD | [US11] | ✅ |
 | RP05 | Frontend mobile-first | [US10] | ✅ |
 | RP06 | Padrão arquitetural MVC documentado | [US01] | ✅ |
-| RP07 | Documentação + diagrama de componentes | 🔄 |
+| RP07 | Documentação + diagrama de componentes | | 🔄 |
+
+---
+
+## 📅 Sprints
+
+| Sprint | Período | Foco | Status |
+|--------|---------|------|--------|
+| **Sprint 1** | 13/04 – 30/04/2026 | Setup + Auth + Import + Dashboard base | ✅ Concluída |
+| **Sprint 2** | 04/05 – 21/05/2026 | ML/IA (perfis + anomalias) + Alertas | ✅ Concluída |
+| **Sprint 3** | 25/05 – 11/06/2026 | Dashboards avançados + Mobile + Segurança | 🔄 Em andamento |
+| **Apresentação** | Semana de 22/06/2026 | Apresentação final | |
+
+---
+
+## 📋 Backlog
+
+### Sprint 1 — Setup + Auth + Import + Dashboard base ✅
+
+| ID | Nome | User Story | Status |
+|----|------|------------|--------|
+| US01 | Setup e Arquitetura Base | Como desenvolvedor, quero configurar o repositório GitHub e a estrutura base (React + Node) para iniciar o projeto com padrões profissionais. | ✅ |
+| US02 | Banco de Dados e Modelagem (Prisma) | Como desenvolvedor, quero modelar as tabelas de Atletas, Usuários e Sessões no PostgreSQL via Prisma para persistir os dados do sistema. | ✅ |
+| US03 | Sistema de Autenticação | Como membro da comissão técnica, quero criar uma conta e fazer login para acessar os dados restritos dos atletas. | ✅ |
+| US04 | Importação dos Dados (XLSX) | Como analista de desempenho, quero fazer upload da planilha "Players.xlsx" para que o sistema popule o banco automaticamente com os dados do GPS. | ✅ |
+| US05 | Dashboard Principal e Listagem | Como técnico, quero ver uma lista de todos os atletas e estatísticas gerais do time para ter uma visão macro do elenco. | ✅ |
+
+### Sprint 2 — ML/IA + Alertas ✅
+
+| ID | Nome | User Story | Status |
+|----|------|------------|--------|
+| US06 | Identificação de Perfis via IA (K-Means) | Como analista, quero que o sistema utilize um modelo de Machine Learning (K-Means ou similar) hospedado na nuvem para classificar os atletas, atendendo à restrição de inteligência artificial. | ✅ |
+| US07 | Detecção de Anomalias (Prevenção) | Como Comissão Técnica, quero receber alertas automáticos quando um atleta tiver uma queda brusca de rendimento, indicando risco iminente de lesão. | ✅ |
+| US08 | Central de Notificações e Alertas | Como técnico, quero um painel de notificações em tempo real para acompanhamento dos atletas. | ✅ |
+
+### Sprint 3 — Dashboards avançados + Mobile + Segurança 🔄
+
+| ID | Nome | User Story | Status |
+|----|------|------------|--------|
+| US09 | Visão Individual do Atleta | Como atleta ou técnico, quero ver gráficos de evolução (velocidade, distância) ao longo do tempo para entender o progresso do condicionamento. | 📌 |
+| US10 | Relatórios Mobile-First para Campo | Como auxiliar técnico, quero acessar os perfis dos atletas no celular durante o treino para decidir quem substituir. | 📌 |
+| US11 | Segurança de Dados | Como gestor, quero que os dados sensíveis dos atletas sejam protegidos com criptografia em trânsito e em repouso, garantindo a segurança da informação. | 📌 |
 
 ---
 
@@ -158,17 +199,6 @@ npm run dev            # Inicia em http://localhost:5173
 
 ---
 
-## 📅 Sprints
-
-| Sprint | Período | Foco |
-|--------|---------|------|
-| **Sprint 1** | 13/04 – 30/04/2026 | Setup + Auth + Import + Dashboard base |
-| **Sprint 2** | 04/05 – 21/05/2026 | ML/IA (perfis + anomalias) + Alertas |
-| **Sprint 3** | 25/05 – 11/06/2026 | Dashboards avançados + Mobile + Segurança |
-| **Apresentação** | Semana de 22/06/2026 | Apresentação final |
-
----
-
 ## 👥 Time
 
 | Nome | Papel | GitHub |
@@ -178,11 +208,8 @@ npm run dev            # Inicia em http://localhost:5173
 | Maria Eduarda | Dev Full Stack | @ferreira-me |
 | Leandro Barbosa | Dev Full Stack | @gmlebc |
 | Raquel Massae | Dev Full Stack | @nakamuraquel |
-| Felipe Correia | Dev Frontend | @turnupthetaste|
-|Pamela Freitas| Dev Full Stack | @PaamFreitas18 |
-
----
-
+| Felipe Correia | Dev Frontend | @turnupthetaste |
+| Pamela Freitas | Dev Full Stack | @PaamFreitas18 |
 
 ---
 
