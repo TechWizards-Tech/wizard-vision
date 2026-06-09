@@ -7,6 +7,7 @@ from pydantic import BaseModel
 import pandas as pd
 import numpy as np
 from sklearn.cluster import KMeans
+from sklearn.ensemble import IsolationForest
 from datetime import datetime
 from dotenv import load_dotenv
 
@@ -181,7 +182,32 @@ def detect_anomalies(request: ProcessRequest = None):
     athlete_id = request.athlete_id if request else None
     
     try:
-        # 1. Obter atletas a serem processados
+        # 1. Carregar TODAS as sessões "Whole Session" para treinar o Isolation Forest Global
+        cursor.execute("""
+            SELECT "distanceM", "sessionLoad", "noOfSprints"
+            FROM sessions
+            WHERE "segmentName" = 'Whole Session'
+        """)
+        all_sessions = cursor.fetchall()
+        
+        run_iso_forest = False
+        iso_model = None
+        
+        # O Isolation Forest precisa de um mínimo de dados históricos de time para funcionar
+        if all_sessions and len(all_sessions) >= 5:
+            try:
+                df_all = pd.DataFrame(all_sessions)
+                df_all.fillna(0, inplace=True)
+                X_all = df_all[['distanceM', 'sessionLoad', 'noOfSprints']].values
+                
+                # Inicializa e treina o Isolation Forest
+                iso_model = IsolationForest(n_estimators=100, contamination=0.1, random_state=42)
+                iso_model.fit(X_all)
+                run_iso_forest = True
+            except Exception as if_err:
+                print(f"[ERROR] Erro ao treinar Isolation Forest: {if_err}")
+
+        # 2. Obter atletas a serem processados
         if athlete_id:
             cursor.execute('SELECT id, name FROM athletes WHERE id = %s', (athlete_id,))
         else:
@@ -204,7 +230,7 @@ def detect_anomalies(request: ProcessRequest = None):
             """, (ath_id,))
             sessions = cursor.fetchall()
             
-            # Precisamos de pelo menos 3 sessões históricas para criar uma baseline individual
+            # Precisamos de pelo menos 3 sessões históricas para criar uma baseline individual do Z-Score
             if len(sessions) < 3:
                 continue
                 
@@ -217,7 +243,19 @@ def detect_anomalies(request: ProcessRequest = None):
             
             latest_id = int(latest_session['id'])
             
-            # Avaliar queda em métricas chaves: Distância e Session Load
+            # 3. Executar predição com o Isolation Forest se estiver ativo (análise multivariada)
+            is_if_anomaly = False
+            if run_iso_forest and iso_model is not None:
+                latest_dist = float(latest_session['distanceM']) if latest_session['distanceM'] is not None else 0.0
+                latest_load = float(latest_session['sessionLoad']) if latest_session['sessionLoad'] is not None else 0.0
+                latest_sprints = float(latest_session['noOfSprints']) if latest_session['noOfSprints'] is not None else 0.0
+                
+                # predict retorna -1 para outliers e 1 para normais
+                pred = iso_model.predict([[latest_dist, latest_load, latest_sprints]])
+                if pred[0] == -1:
+                    is_if_anomaly = True
+
+            # 4. Avaliar queda em métricas chaves via Z-Score Individual (análise univariada)
             metrics_to_check = [
                 ('distanceM', 'distância total', 'm'),
                 ('sessionLoad', 'carga de trabalho', ' unidades'),
@@ -243,7 +281,7 @@ def detect_anomalies(request: ProcessRequest = None):
                 drop_pct = ((hist_mean - val_actual) / hist_mean * 100) if hist_mean > 0 else 0
                 
                 # Se o valor atual for menor que a média e a queda for significativa
-                # Um Z-Score menor que -1.5 (ou seja, 1.5 desvios padrões abaixo da média) E queda superior a 25%
+                # Um Z-Score menor que -1.5 E queda superior a 25%
                 if z_score < -1.5 and drop_pct > 25:
                     anomalies.append({
                         "metric": name_pt,
@@ -255,17 +293,30 @@ def detect_anomalies(request: ProcessRequest = None):
                     if drop_pct > max_drop_pct:
                         max_drop_pct = drop_pct
             
-            # Se detectou queda brusca em qualquer métrica chave
-            if anomalies:
-                # 2. Criar mensagem clara e humanizada em português (como pede a RNF05)
-                desc_list = [
-                    f"{a['metric']} caiu {a['drop_pct']}% (Média: {a['hist_mean']}{a['unit']} | Atual: {a['actual']}{a['unit']})"
-                    for a in anomalies
-                ]
-                message = f"Queda brusca de desempenho detectada em {ath_name}: " + ", ".join(desc_list)
-                
-                # Define a gravidade baseada no tamanho da queda
-                severity = 'HIGH' if max_drop_pct < 40 else 'CRITICAL'
+            is_zscore_anomaly = len(anomalies) > 0
+            
+            # Lógica de Decisão Híbrida: gera alerta se Z-Score OU Isolation Forest detectarem
+            if is_zscore_anomaly or is_if_anomaly:
+                # 5. Criar mensagem humanizada em português explicando a anomalia conforme o método disparado
+                if is_zscore_anomaly and is_if_anomaly:
+                    desc_list = [
+                        f"{a['metric']} caiu {a['drop_pct']}% (Média: {a['hist_mean']}{a['unit']} | Atual: {a['actual']}{a['unit']})"
+                        for a in anomalies
+                    ]
+                    message = f"Queda brusca de desempenho e comportamento atípico detectados em {ath_name}: " + ", ".join(desc_list) + ". [Método: Híbrido (Z-Score & Isolation Forest)]"
+                    severity = 'CRITICAL'
+                elif is_zscore_anomaly:
+                    desc_list = [
+                        f"{a['metric']} caiu {a['drop_pct']}% (Média: {a['hist_mean']}{a['unit']} | Atual: {a['actual']}{a['unit']})"
+                        for a in anomalies
+                    ]
+                    message = f"Queda brusca de desempenho detectada em {ath_name}: " + ", ".join(desc_list) + ". [Método: Z-Score Individual]"
+                    severity = 'HIGH' if max_drop_pct < 40 else 'CRITICAL'
+                else:
+                    # Disparou apenas o Isolation Forest (multivariado)
+                    message = f"Comportamento físico atípico detectado em {ath_name} (correlação incomum observada entre distância, sprints e carga de impacto). [Método: Isolation Forest Multivariado]"
+                    severity = 'HIGH'
+                    max_drop_pct = 30.0 # Score padrão estimado de queda para gravação do anomalyScore
                 
                 # Checa se já existe um alerta idêntico recente não lido para evitar duplicados
                 cursor.execute("""
@@ -292,7 +343,7 @@ def detect_anomalies(request: ProcessRequest = None):
         conn.commit()
         return {
             "success": True,
-            "message": f"Detecção concluída. {sessions_flagged} sessões com queda detectada. {alerts_created} novos alertas criados."
+            "message": f"Detecção concluída. {sessions_flagged} sessões com queda/atipicidade detectada. {alerts_created} novos alertas criados."
         }
         
     except Exception as e:
