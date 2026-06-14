@@ -21,7 +21,12 @@ const listAthletes = async (req, res) => {
       take: Number(limit),
       orderBy: { athleteId: 'asc' },
       include: {
-        _count: { select: { sessions: true, alerts: true } },
+        _count: {
+          select: {
+            sessions: true,
+            alerts: { where: { isRead: false } },
+          },
+        },
         sessions: {
           where: { segmentName: 'Whole Session' },
           orderBy: { startDate: 'desc' },
