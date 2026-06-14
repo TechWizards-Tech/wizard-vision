@@ -182,32 +182,7 @@ def detect_anomalies(request: ProcessRequest = None):
     athlete_id = request.athlete_id if request else None
     
     try:
-        # 1. Carregar TODAS as sessões "Whole Session" para treinar o Isolation Forest Global
-        cursor.execute("""
-            SELECT "distanceM", "sessionLoad", "noOfSprints"
-            FROM sessions
-            WHERE "segmentName" = 'Whole Session'
-        """)
-        all_sessions = cursor.fetchall()
-        
-        run_iso_forest = False
-        iso_model = None
-        
-        # O Isolation Forest precisa de um mínimo de dados históricos de time para funcionar
-        if all_sessions and len(all_sessions) >= 5:
-            try:
-                df_all = pd.DataFrame(all_sessions)
-                df_all.fillna(0, inplace=True)
-                X_all = df_all[['distanceM', 'sessionLoad', 'noOfSprints']].values
-                
-                # Inicializa e treina o Isolation Forest
-                iso_model = IsolationForest(n_estimators=100, contamination=0.1, random_state=42)
-                iso_model.fit(X_all)
-                run_iso_forest = True
-            except Exception as if_err:
-                print(f"[ERROR] Erro ao treinar Isolation Forest: {if_err}")
-
-        # 2. Obter atletas a serem processados
+        # 1. Obter atletas a serem processados
         if athlete_id:
             cursor.execute('SELECT id, name FROM athletes WHERE id = %s', (athlete_id,))
         else:
@@ -243,17 +218,29 @@ def detect_anomalies(request: ProcessRequest = None):
             
             latest_id = int(latest_session['id'])
             
-            # 3. Executar predição com o Isolation Forest se estiver ativo (análise multivariada)
+            # 3. Executar predição com o Isolation Forest se houver histórico suficiente (análise multivariada individual)
             is_if_anomaly = False
-            if run_iso_forest and iso_model is not None:
-                latest_dist = float(latest_session['distanceM']) if latest_session['distanceM'] is not None else 0.0
-                latest_load = float(latest_session['sessionLoad']) if latest_session['sessionLoad'] is not None else 0.0
-                latest_sprints = float(latest_session['noOfSprints']) if latest_session['noOfSprints'] is not None else 0.0
-                
-                # predict retorna -1 para outliers e 1 para normais
-                pred = iso_model.predict([[latest_dist, latest_load, latest_sprints]])
-                if pred[0] == -1:
-                    is_if_anomaly = True
+            if len(sessions) >= 15:
+                try:
+                    # Prepara os dados de treino específicos do atleta (histórico sem a última sessão)
+                    X_athlete_hist = historical[['distanceM', 'sessionLoad', 'noOfSprints']].values
+                    
+                    # Inicializa e treina o Isolation Forest individual
+                    iso_model_athlete = IsolationForest(n_estimators=100, contamination=0.05, random_state=42)
+                    iso_model_athlete.fit(X_athlete_hist)
+                    
+                    latest_dist = float(latest_session['distanceM']) if latest_session['distanceM'] is not None else 0.0
+                    latest_load = float(latest_session['sessionLoad']) if latest_session['sessionLoad'] is not None else 0.0
+                    latest_sprints = float(latest_session['noOfSprints']) if latest_session['noOfSprints'] is not None else 0.0
+                    
+                    # predict retorna -1 para outliers e 1 para normais
+                    pred = iso_model_athlete.predict([[latest_dist, latest_load, latest_sprints]])
+                    if pred[0] == -1:
+                        is_if_anomaly = True
+                except Exception as if_err:
+                    print(f"[ERROR] Erro ao treinar Isolation Forest Individual para atleta {ath_name}: {if_err}")
+            else:
+                print(f"[INFO] Histórico insuficiente para Isolation Forest individual do atleta {ath_name} ({len(sessions)} sessões). Utilizando apenas Z-Score.")
 
             # 4. Avaliar queda em métricas chaves via Z-Score Individual (análise univariada)
             metrics_to_check = [
@@ -266,8 +253,8 @@ def detect_anomalies(request: ProcessRequest = None):
             max_drop_pct = 0
             
             for col, name_pt, unit in metrics_to_check:
-                hist_mean = historical[col].mean()
-                hist_std = historical[col].std()
+                hist_mean = historical[col].mean() #media
+                hist_std = historical[col].std() # desvio padrao
                 val_actual = latest_session[col]
                 
                 # Se o desvio padrão for zero ou muito baixo, assumimos um mínimo razoável para evitar divisão por zero
@@ -303,7 +290,7 @@ def detect_anomalies(request: ProcessRequest = None):
                         f"{a['metric']} caiu {a['drop_pct']}% (Média: {a['hist_mean']}{a['unit']} | Atual: {a['actual']}{a['unit']})"
                         for a in anomalies
                     ]
-                    message = f"Queda brusca de desempenho e comportamento atípico detectados em {ath_name}: " + ", ".join(desc_list) + ". [Método: Híbrido (Z-Score & Isolation Forest)]"
+                    message = f"Queda brusca de desempenho e comportamento atípico detectados em {ath_name}: " + ", ".join(desc_list) + ". [Método: Híbrido (Z-Score & Isolation Forest Individual)]"
                     severity = 'CRITICAL'
                 elif is_zscore_anomaly:
                     desc_list = [
@@ -313,8 +300,8 @@ def detect_anomalies(request: ProcessRequest = None):
                     message = f"Queda brusca de desempenho detectada em {ath_name}: " + ", ".join(desc_list) + ". [Método: Z-Score Individual]"
                     severity = 'HIGH' if max_drop_pct < 40 else 'CRITICAL'
                 else:
-                    # Disparou apenas o Isolation Forest (multivariado)
-                    message = f"Comportamento físico atípico detectado em {ath_name} (correlação incomum observada entre distância, sprints e carga de impacto). [Método: Isolation Forest Multivariado]"
+                    # Disparou apenas o Isolation Forest (multivariado individual)
+                    message = f"Comportamento físico atípico detectado em {ath_name} (correlação incomum observada entre distância, sprints e carga de impacto). [Método: Isolation Forest Individual]"
                     severity = 'HIGH'
                     max_drop_pct = 30.0 # Score padrão estimado de queda para gravação do anomalyScore
                 
