@@ -1,4 +1,5 @@
 const prisma = require('../utils/prisma');
+const crypto = require('../utils/crypto');
 
 /**
  * Controller de Atletas
@@ -69,10 +70,15 @@ const listAthletes = async (req, res) => {
     prisma.athlete.count({ where }),
   ]);
 
+  const decryptedAthletes = athletes.map(a => ({
+    ...a,
+    name: crypto.decrypt(a.name)
+  }));
+
   return res.status(200).json({
     success: true,
     data: {
-      athletes,
+      athletes: decryptedAthletes,
       pagination: {
         page: Number(page),
         limit: Number(limit),
@@ -110,9 +116,14 @@ const getAthlete = async (req, res) => {
     });
   }
 
+  const athleteData = {
+    ...athlete,
+    name: crypto.decrypt(athlete.name)
+  };
+
   return res.status(200).json({
     success: true,
-    data: athlete,
+    data: athleteData,
   });
 };
 

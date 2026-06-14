@@ -1,6 +1,7 @@
 const multer = require('multer');
 const XLSX = require('xlsx');
 const prisma = require('../utils/prisma');
+const crypto = require('../utils/crypto');
 
 /**
  * Controller de Importação de Dados
@@ -100,6 +101,7 @@ const importXlsx = async (req, res) => {
       if (!athleteMap.has(key)) {
         athleteMap.set(key, {
           athleteId: BigInt(athleteId),
+          name: row['Athlete Name'] || row['Name'] || null,
           position: row['Athlete Position'] || null,
           group: row['Athlete Groups'] || null,
           rows: [],
@@ -118,9 +120,11 @@ const importXlsx = async (req, res) => {
         update: {
           position: athleteData.position,
           group: athleteData.group,
+          ...(athleteData.name ? { name: crypto.encrypt(athleteData.name) } : {}),
         },
         create: {
           athleteId: athleteData.athleteId,
+          name: athleteData.name ? crypto.encrypt(athleteData.name) : null,
           position: athleteData.position,
           group: athleteData.group,
         },
