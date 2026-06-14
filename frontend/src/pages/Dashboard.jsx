@@ -23,6 +23,7 @@ export default function Dashboard({ openAlertsDefault = false, openImportDefault
   const [filterPosition, setFilterPosition] = useState('');
   const [filterProfile, setFilterProfile] = useState('');
   const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [importing, setImporting] = useState(false);
 
   // Estados de Alertas e Notificações (Sprint 2)
@@ -55,9 +56,18 @@ export default function Dashboard({ openAlertsDefault = false, openImportDefault
     }
   }, [isAlertsOpen]);
 
+  // Debounce para a pesquisa de atleta
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+      setPage(1); // Reseta a paginação ao digitar
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [search]);
+
   useEffect(() => {
     loadAthletes();
-  }, [page, filterPosition, filterProfile]);
+  }, [page, filterPosition, filterProfile, debouncedSearch]);
 
   const loadStats = async () => {
     try {
@@ -105,6 +115,7 @@ export default function Dashboard({ openAlertsDefault = false, openImportDefault
       const params = { page, limit: 12 };
       if (filterPosition) params.position = filterPosition;
       if (filterProfile) params.profile = filterProfile;
+      if (debouncedSearch) params.search = debouncedSearch;
 
       const res = await api.getAthletes(params);
       setAthletes(res.data.athletes);
@@ -144,13 +155,7 @@ export default function Dashboard({ openAlertsDefault = false, openImportDefault
     navigate('/');
   };
 
-  const filteredAthletes = athletes.filter(a => {
-    if (!search) return true;
-    return (
-      String(a.athleteId).includes(search) ||
-      (a.position || '').toLowerCase().includes(search.toLowerCase())
-    );
-  });
+  // Filtro local removido pois a busca agora ocorre do lado do servidor e banco de dados
 
   return (
     <div className="app-layout">
@@ -258,14 +263,14 @@ export default function Dashboard({ openAlertsDefault = false, openImportDefault
           <div className="loading-grid">
             {[...Array(6)].map((_, i) => <div key={i} className="skeleton-card" />)}
           </div>
-        ) : filteredAthletes.length === 0 ? (
+        ) : athletes.length === 0 ? (
           <div className="empty-state">
             <span>⚽</span>
             <p>Nenhum atleta encontrado. Importe os dados do xlsx para começar.</p>
           </div>
         ) : (
           <section className="athletes-grid">
-            {filteredAthletes.map(athlete => (
+            {athletes.map(athlete => (
               <AthleteCard
                 key={athlete.id}
                 athlete={athlete}

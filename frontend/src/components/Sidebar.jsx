@@ -10,9 +10,9 @@ const PROFILE_COLORS = {
 
 const NAV_ITEMS = [
   { to: '/dashboard', icon: '📊', label: 'Dashboard' },
-  { to: '/athletes', icon: '👥', label: 'Atletas', disabled: true },
+  { to: '/athletes', icon: '👥', label: 'Atletas' },
   { to: '/alerts', icon: '🔔', label: 'Alertas' },
-  { to: '/import', icon: '📥', label: 'Importar', disabled: true },
+  { to: '/import', icon: '📥', label: 'Importar' },
 ];
 
 export default function Sidebar({ user, onLogout, isAlertsOpen, onAlertsClick }) {
@@ -27,19 +27,6 @@ export default function Sidebar({ user, onLogout, isAlertsOpen, onAlertsClick })
       {/* Nav */}
       <nav className="sidebar-nav">
         {NAV_ITEMS.map(item => {
-          if (item.disabled) {
-            return (
-              <div
-                key={item.to}
-                className="nav-item disabled"
-                title="Disponível na Sprint 3"
-                style={{ opacity: 0.4, cursor: 'not-allowed' }}
-              >
-                <span className="nav-icon">{item.icon}</span>
-                <span className="nav-label">{item.label}</span>
-              </div>
-            );
-          }
 
           if (item.to === '/alerts' && onAlertsClick) {
             return (
