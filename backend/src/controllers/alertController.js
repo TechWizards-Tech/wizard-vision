@@ -1,4 +1,5 @@
 const prisma = require('../utils/prisma');
+const crypto = require('../utils/crypto');
 
 /**
  * Controller de Alertas
@@ -22,16 +23,31 @@ const listAlerts = async (req, res) => {
       orderBy: { createdAt: 'desc' },
       include: {
         athlete: {
-          select: { id: true, name: true, position: true, profile: true },
+          select: { id: true, athleteId: true, name: true, position: true, profile: true },
         },
       },
     }),
     prisma.alert.count({ where }),
   ]);
 
+  // Descriptografia transparente do nome do atleta se ele existir
+  const decryptedAlerts = alerts.map(alert => {
+    if (alert.athlete) {
+      return {
+        ...alert,
+        athlete: {
+          ...alert.athlete,
+          name: crypto.decrypt(alert.athlete.name),
+          athleteId: alert.athlete.athleteId.toString() // Converte BigInt para string para exibição segura no JSON
+        }
+      };
+    }
+    return alert;
+  });
+
   return res.status(200).json({
     success: true,
-    data: { alerts, total },
+    data: { alerts: decryptedAlerts, total },
   });
 };
 
