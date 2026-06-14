@@ -7,12 +7,36 @@ const prisma = require('../utils/prisma');
 
 // GET /athletes
 const listAthletes = async (req, res) => {
-  const { page = 1, limit = 20, position, profile } = req.query;
+  const { page = 1, limit = 20, position, profile, search } = req.query;
   const skip = (Number(page) - 1) * Number(limit);
 
   const where = {};
   if (position) where.position = { contains: position, mode: 'insensitive' };
   if (profile) where.profile = profile;
+
+  if (search) {
+    const isNumeric = /^\d+$/.test(search);
+    if (isNumeric) {
+      try {
+        const sqlLikePattern = `%${search}%`;
+        const rawResults = await prisma.$queryRawUnsafe(
+          'SELECT id FROM athletes WHERE CAST("athleteId" AS TEXT) LIKE $1',
+          sqlLikePattern
+        );
+        const matchedIds = rawResults.map(r => r.id);
+        where.id = { in: matchedIds };
+      } catch (err) {
+        console.error('Erro na busca raw de athleteId:', err);
+        where.id = { in: [] };
+      }
+    } else {
+      where.OR = [
+        { name: { contains: search, mode: 'insensitive' } },
+        { position: { contains: search, mode: 'insensitive' } },
+        { group: { contains: search, mode: 'insensitive' } },
+      ];
+    }
+  }
 
   const [athletes, total] = await Promise.all([
     prisma.athlete.findMany({
