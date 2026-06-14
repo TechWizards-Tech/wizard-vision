@@ -90,6 +90,7 @@ model Session {
 
   createdAt           DateTime @default(now())
 
+  @@unique([athleteId, startDate, segmentName])
   @@map("sessions")
 }
 
