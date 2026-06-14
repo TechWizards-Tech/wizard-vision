@@ -135,7 +135,7 @@ const importXlsx = async (req, res) => {
 
       await prisma.session.createMany({
         data: sessionData,
-        skipDuplicates: false,
+        skipDuplicates: true,
       });
 
       // Classifica perfil
