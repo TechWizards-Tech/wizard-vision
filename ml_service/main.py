@@ -261,6 +261,15 @@ def detect_anomalies(request: ProcessRequest = None):
             
             for col, name_pt, unit in metrics_to_check:
                 hist_mean = historical[col].mean() #media
+                
+                # Ignorar métricas com valores históricos insignificantes (evita falsos positivos de IA)
+                if col == 'sprintsPerMinute' and hist_mean < 0.03:
+                    continue
+                if col == 'loadPerMinute' and hist_mean < 0.5:
+                    continue
+                if col == 'metresPerMinute' and hist_mean < 10.0:
+                    continue
+                
                 hist_std = historical[col].std() # desvio padrao
                 val_actual = latest_session[col]
                 
