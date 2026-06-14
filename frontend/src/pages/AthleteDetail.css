@@ -393,3 +393,114 @@
     gap: 1rem;
   }
 }
+
+/* Seção de Anomalias Detectadas no Perfil */
+.athlete-alerts-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.athlete-alerts-section h3 {
+  font-size: 1.15rem;
+  font-weight: 800;
+  margin-bottom: 0.5rem;
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: 0.75rem;
+}
+
+.athlete-alerts-history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.athlete-alert-card {
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 1rem 1.25rem;
+  position: relative;
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition);
+}
+
+.athlete-alert-card:hover {
+  transform: translateX(2px);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+/* Indicador lateral por severidade no card do atleta */
+.athlete-alert-card::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  border-radius: var(--radius-md) 0 0 var(--radius-md);
+}
+
+.athlete-alert-card.severity-critical::before { background-color: #ef4444; }
+.athlete-alert-card.severity-high::before { background-color: #f97316; }
+.athlete-alert-card.severity-medium::before { background-color: #eab308; }
+.athlete-alert-card.severity-low::before { background-color: #3b82f6; }
+.athlete-alert-card.resolved::before { background-color: #10b981; }
+
+.alert-card-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  font-size: 0.8rem;
+}
+
+.severity-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--color-text-secondary);
+}
+
+.severity-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.severity-dot.critical { background-color: #ef4444; }
+.severity-dot.high { background-color: #f97316; }
+.severity-dot.medium { background-color: #eab308; }
+.severity-dot.low { background-color: #3b82f6; }
+
+.alert-status-label {
+  font-weight: 700;
+  font-size: 0.75rem;
+  padding: 0.15rem 0.4rem;
+  border-radius: 0.25rem;
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.athlete-alert-card.resolved .alert-status-label {
+  color: #10b981;
+  background-color: rgba(16, 185, 129, 0.05);
+}
+
+.athlete-alert-card.pending .alert-status-label {
+  color: #f97316;
+  background-color: rgba(249, 115, 22, 0.05);
+}
+
+.alert-date-time {
+  color: var(--color-text-muted);
+}
+
+.alert-desc-text {
+  font-size: 0.9rem;
+  line-height: 1.45;
+  color: var(--color-text-secondary);
+  margin: 0;
+}

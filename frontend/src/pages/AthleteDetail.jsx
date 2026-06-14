@@ -253,6 +253,35 @@ export default function AthleteDetail() {
         </section>
       </div>
 
+      {/* Seção de Anomalias Detectadas */}
+      {athlete.alerts && athlete.alerts.length > 0 && (
+        <section className="detail-card athlete-alerts-section">
+          <h3>⚠️ Histórico de Anomalias Detectadas</h3>
+          <div className="athlete-alerts-history-list">
+            {athlete.alerts.map(alert => (
+              <div key={alert.id} className={`athlete-alert-card severity-${alert.severity.toLowerCase()} ${alert.isRead ? 'resolved' : 'pending'}`}>
+                <div className="alert-card-meta">
+                  <span className="severity-indicator">
+                    <span className={`severity-dot ${alert.severity.toLowerCase()}`} />
+                    <strong>Severidade {alert.severity}</strong>
+                  </span>
+                  <span className="alert-status-label">{alert.isRead ? '✔️ Resolvido' : '⚡ Ativo'}</span>
+                  <span className="alert-date-time">
+                    {new Date(alert.createdAt).toLocaleString('pt-BR', {
+                      day: '2-digit',
+                      month: '2-digit',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}
+                  </span>
+                </div>
+                <p className="alert-desc-text">{alert.message}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
       {/* Tabela do Histórico Completo de Partidas */}
       <section className="detail-card table-panel">
         <h3>Histórico Recente de Sessões</h3>

@@ -162,8 +162,6 @@ export default function Dashboard({ openAlertsDefault = false, openImportDefault
       <Sidebar 
         user={user} 
         onLogout={handleLogout} 
-        isAlertsOpen={isAlertsOpen}
-        onAlertsClick={() => setIsAlertsOpen(prev => !prev)}
       />
 
       <main className="main-content">

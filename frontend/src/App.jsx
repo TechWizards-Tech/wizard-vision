@@ -5,6 +5,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import AthleteDetail from './pages/AthleteDetail';
+import AlertsHistory from './pages/AlertsHistory';
 
 // Guard de rota privada
 function PrivateRoute({ children }) {
@@ -28,7 +29,7 @@ function AppRoutes() {
       <Route path="/" element={user ? <Navigate to="/dashboard" replace /> : <Login />} />
       <Route path="/register" element={user ? <Navigate to="/dashboard" replace /> : <Register />} />
       <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
-      <Route path="/alerts" element={<PrivateRoute><Dashboard openAlertsDefault={true} /></PrivateRoute>} />
+      <Route path="/alerts" element={<PrivateRoute><AlertsHistory /></PrivateRoute>} />
       <Route path="/import" element={<PrivateRoute><Dashboard openImportDefault={true} /></PrivateRoute>} />
       <Route path="/athletes" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
       <Route path="/athletes/:id" element={<PrivateRoute><AthleteDetail /></PrivateRoute>} />
