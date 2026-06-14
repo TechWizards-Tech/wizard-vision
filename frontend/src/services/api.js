@@ -45,8 +45,9 @@ class ApiService {
     const query = new URLSearchParams(params).toString();
     return this.request('GET', `/athletes?${query}`);
   }
-  getAthlete(id) {
-    return this.request('GET', `/athletes/${id}`);
+  getAthlete(id, params = {}) {
+    const query = new URLSearchParams(params).toString();
+    return this.request('GET', `/athletes/${id}?${query}`);
   }
   getStats() {
     return this.request('GET', '/athletes/stats/summary');

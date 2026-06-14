@@ -198,7 +198,7 @@ def detect_anomalies(request: ProcessRequest = None):
             
             # Puxar todas as sessões "Whole Session" do atleta ordenadas por data
             cursor.execute("""
-                SELECT id, "distanceM", "topSpeedKph", "noOfSprints", "sessionLoad", "startDate"
+                SELECT id, "distanceM", "topSpeedKph", "noOfSprints", "sessionLoad", "startDate", "durationMins", "metresPerMinute"
                 FROM sessions
                 WHERE "athleteId" = %s AND "segmentName" = 'Whole Session'
                 ORDER BY "startDate" ASC
@@ -212,6 +212,13 @@ def detect_anomalies(request: ProcessRequest = None):
             df = pd.DataFrame(sessions)
             df.fillna(0, inplace=True)
             
+            # Garantir que durationMins seja maior que zero para evitar divisão por zero
+            df['durationMins'] = df['durationMins'].apply(lambda x: float(x) if x and float(x) > 0 else 1.0)
+            
+            # Calcular colunas de esforço por minuto (distância/metresPerMinute já vem pronto do banco)
+            df['sprintsPerMinute'] = df['noOfSprints'] / df['durationMins']
+            df['loadPerMinute'] = df['sessionLoad'] / df['durationMins']
+            
             # A última sessão é a que queremos avaliar
             latest_session = df.iloc[-1]
             historical = df.iloc[:-1] # todas as anteriores para servir de baseline
@@ -223,18 +230,18 @@ def detect_anomalies(request: ProcessRequest = None):
             if len(sessions) >= 15:
                 try:
                     # Prepara os dados de treino específicos do atleta (histórico sem a última sessão)
-                    X_athlete_hist = historical[['distanceM', 'sessionLoad', 'noOfSprints']].values
+                    X_athlete_hist = historical[['metresPerMinute', 'loadPerMinute', 'sprintsPerMinute']].values
                     
                     # Inicializa e treina o Isolation Forest individual
                     iso_model_athlete = IsolationForest(n_estimators=100, contamination=0.05, random_state=42)
                     iso_model_athlete.fit(X_athlete_hist)
                     
-                    latest_dist = float(latest_session['distanceM']) if latest_session['distanceM'] is not None else 0.0
-                    latest_load = float(latest_session['sessionLoad']) if latest_session['sessionLoad'] is not None else 0.0
-                    latest_sprints = float(latest_session['noOfSprints']) if latest_session['noOfSprints'] is not None else 0.0
+                    latest_dist_min = float(latest_session['metresPerMinute']) if latest_session['metresPerMinute'] is not None else 0.0
+                    latest_load_min = float(latest_session['loadPerMinute']) if latest_session['loadPerMinute'] is not None else 0.0
+                    latest_sprints_min = float(latest_session['sprintsPerMinute']) if latest_session['sprintsPerMinute'] is not None else 0.0
                     
                     # predict retorna -1 para outliers e 1 para normais
-                    pred = iso_model_athlete.predict([[latest_dist, latest_load, latest_sprints]])
+                    pred = iso_model_athlete.predict([[latest_dist_min, latest_load_min, latest_sprints_min]])
                     if pred[0] == -1:
                         is_if_anomaly = True
                 except Exception as if_err:
@@ -242,11 +249,11 @@ def detect_anomalies(request: ProcessRequest = None):
             else:
                 print(f"[INFO] Histórico insuficiente para Isolation Forest individual do atleta {ath_name} ({len(sessions)} sessões). Utilizando apenas Z-Score.")
 
-            # 4. Avaliar queda em métricas chaves via Z-Score Individual (análise univariada)
+            # 4. Avaliar queda em métricas chaves via Z-Score Individual (análise univariada normalizada)
             metrics_to_check = [
-                ('distanceM', 'distância total', 'm'),
-                ('sessionLoad', 'carga de trabalho', ' unidades'),
-                ('noOfSprints', 'número de sprints', ' sprints')
+                ('metresPerMinute', 'ritmo de corrida', ' m/min'),
+                ('loadPerMinute', 'carga de esforço por minuto', ' un/min'),
+                ('sprintsPerMinute', 'frequência de sprints por minuto', ' sprints/min')
             ]
             
             anomalies = []

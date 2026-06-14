@@ -62,6 +62,7 @@ const listAthletes = async (req, res) => {
 // GET /athletes/:id
 const getAthlete = async (req, res) => {
   const { id } = req.params;
+  const { limit = 30 } = req.query;
 
   const athlete = await prisma.athlete.findUnique({
     where: { id: Number(id) },
@@ -69,7 +70,7 @@ const getAthlete = async (req, res) => {
       sessions: {
         where: { segmentName: 'Whole Session' },
         orderBy: { startDate: 'desc' },
-        take: 10,
+        take: Number(limit),
       },
       alerts: {
         orderBy: { createdAt: 'desc' },
